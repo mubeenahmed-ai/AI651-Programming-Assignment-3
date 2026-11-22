@@ -45,8 +45,7 @@ AI651-PA3/
 ├── report/
 │   ├── main.tex
 │   ├── main.pdf
-│   ├── tables/
-└── figures/                    
+└──                 
 ```
 
 **Important:** The supplied files for this repository starter contain the executed notebook and saved experimental outputs.
