@@ -1,0 +1,250 @@
+\documentclass[11pt,a4paper]{article}
+\usepackage[T1]{fontenc}
+\usepackage[utf8]{inputenc}
+\usepackage{lmodern}
+\usepackage{microtype}
+\usepackage{geometry}
+\geometry{top=0.80in,bottom=0.82in,left=0.95in,right=0.95in}
+\usepackage{amsmath,amssymb,mathtools}
+\usepackage{graphicx}
+\usepackage{booktabs,multirow,tabularx,array}
+\usepackage{caption,subcaption}
+\usepackage{float}
+\usepackage{enumitem}
+\usepackage{xcolor}
+\usepackage{hyperref}
+\usepackage{listings}
+\usepackage{fancyhdr}
+\usepackage{placeins}
+\usepackage{siunitx}
+\sisetup{detect-all}
+\hypersetup{colorlinks=true,linkcolor=black,citecolor=black,urlcolor=blue,pdftitle={AI651 Assignment 3: Aggregation, Direction and Traffic Forecasting},pdfauthor={Mubeen Ahmed}}
+\graphicspath{{figures/}}
+\captionsetup{font=small,labelfont=bf,skip=5pt}
+\setlist[itemize]{itemsep=2pt,parsep=0pt,topsep=3pt}
+\setlist[enumerate]{itemsep=2pt,parsep=0pt,topsep=3pt}
+\setlength{\parskip}{2pt}
+\setlength{\parindent}{0pt}
+\setlength{\emergencystretch}{2em}
+\renewcommand{\arraystretch}{1.12}
+\newcommand{\flowunit}{\mathrm{vehicles}/15\,\mathrm{min}}
+\newcommand{\Ahat}{\widehat{A}}
+\newcommand{\maybeurl}{\textcolor{red!70!black}{\textbf{[INSERT PUBLIC PA3 GITHUB REPOSITORY URL]}}}
+\newcommand{\figone}[4][0.95\linewidth]{\begin{figure}[!htbp]\centering\includegraphics[width=#1]{#2}\caption{#3}\label{#4}\end{figure}}
+\newcommand{\figpair}[6]{\begin{figure}[!htbp]\centering\begin{subfigure}[t]{0.49\linewidth}\centering\includegraphics[width=\linewidth]{#1}\caption{#2}\end{subfigure}\hfill\begin{subfigure}[t]{0.49\linewidth}\centering\includegraphics[width=\linewidth]{#3}\caption{#4}\end{subfigure}\caption{#5}\label{#6}\end{figure}}
+\pagestyle{fancy}
+\fancyhf{}
+\fancyhead[L]{\small AI651 --- Deep Learning for Space, Time and Graphs}
+\fancyhead[R]{\small Assignment 3}
+\fancyfoot[C]{\thepage}
+\renewcommand{\headrulewidth}{0.2pt}
+\begin{document}
+\begin{titlepage}
+\centering
+\vspace*{2.2cm}
+{\large Deep Learning for Space Time Graph\par}
+\vspace{0.55cm}
+{\large Assignment 3\par}
+\vspace{1.65cm}
+{\bfseries\large What Does a Sum Remember? Direction of Slowdown,\\[3pt] and Spatio-Temporal Traffic Forecasting on LargeST-SD\par}
+\vspace{1.20cm}
+{\small\textbf{Public code repository }\par}
+\vspace{0.25cm}
+\url{https://github.com/mubeenahmed-ai/AI651-Programming-Assignment-3} \par}
+\vspace{1.55cm}
+{Mubeen Ahmed\par}
+\vspace{0.25cm}
+{Student ID: 25280101\par}
+\vspace{0.42cm}
+{Fall 2026\par}
+\vspace{0.30cm}
+{November 22, 2026\par}
+\vfill
+\end{titlepage}
+\setcounter{page}{1}
+
+\section{Introduction}
+This assignment studies the information limits of graph aggregation, the role of directed motion, and the practical performance of graph-based forecasting on a real sensor network. Questions~1--2 establish analytically when neighbourhood summaries discard information and how direction or history resolves a symmetry ambiguity. Questions~3--7 use the \textit{LargeST} San Diego (SD) subset: 716 traffic sensors observed during 2020--2021, resampled from five to fifteen minutes, with eight input steps and four forecast horizons.  The principal empirical result is qualified: although the hybrid graph improves over the fixed and purely adaptive graph variants, the temporal-only baseline remains the most accurate on the common April--December 2021 test period (MAE 64.552 versus 79.310 for hybrid and 140.232 for fixed, in vehicles per 15-minute bin). Thus, this experiment does not establish that spatial message passing improves over temporal modelling. 
+
+\section{Question 1: What Does a Sum Remember?}
+\subsection{Q1(a): Affine messages cannot separate all neighbourhoods}
+With \(\phi(x)=wx+c\), a neighbourhood of size \(n_v\), and total trend \(S_v=\sum_{u\in\mathcal{N}(v)}x_u\), has aggregate
+\begin{equation}
+ m_v=\sum_{u\in\mathcal{N}(v)}(wx_u+c)=wS_v+cn_v,\qquad h_v=\rho(m_v).\label{eq:affine}
+\end{equation}
+If two neighbourhoods have the same \((n_v,S_v)\), Equation~\eqref{eq:affine} yields the same aggregate for every possible \(w,c\), hence the same \(h_v\) for \emph{any} post-aggregation mapping \(\rho\). This is a structural result, not an optimisation failure. For example,
+\[
+\mathcal{N}_1=[0,0],\quad \mathcal{N}_2=[-1,+1];\qquad (n,S)=(2,0)
+\]
+contain two versus zero steady neighbours. Likewise \([-1,0,0,+1]\) and \([-1,-1,+1,+1]\) both have \((n,S)=(4,0)\) yet contain two versus zero steady readings. The notebook reports near-floating-point-zero differences in numerical checks with random coefficients equality follows exactly from the algebra.
+
+\subsection{Q1(b): Injective scalar-message aggregation}
+Let \(1\leq n_v\leq K\), denote trend counts by \(c_-,c_0,c_+\), and choose base \(B=K+1\). Assign
+\begin{equation}
+ \phi(-1)=1,\qquad \phi(0)=B,\qquad \phi(+1)=B^2,\quad
+ m=c_-+Bc_0+B^2c_+.\label{eq:base}
+\end{equation}
+Because every count is at most \(K<B\), no digit carries into the next positional place. Decoding is unique:
+\begin{equation}
+ c_-=m\bmod B,\qquad
+ c_0=\left\lfloor\frac{m}{B}\right\rfloor\bmod B,\qquad
+ c_+=\left\lfloor\frac{m}{B^2}\right\rfloor.\label{eq:decode}
+\end{equation}
+For \(K=8\), \(B=9\) and \((\phi(-1),\phi(0),\phi(+1))=(1,9,81)\). The recorded NumPy exhaustive test visits \(\sum_{n=1}^8\binom{n+2}{2}=164\) permitted triples and finds 164 distinct sums with correct round-trip decoding. For the simpler non-steady count, we take \(\phi(x)=x^2\) on \(\{-1,0,+1\}\); then \(\sum\phi(x_u)=c_-+c_+\).
+\figone[0.51\linewidth]{q1b_encoding_injective.pdf}{Exhaustive injectivity test for the 164 admissible trend-count triples when \(K=8\) and \(B=9\); all sums are distinct.}{fig:q1base}
+
+\subsection{Q1(c): Sum, mean and max with one-hot messages}
+Now let \(\phi(-1)=(1,0,0)\), \(\phi(0)=(0,1,0)\), \(\phi(+1)=(0,0,1)\), and write the aggregate \(a=(a_-,a_0,a_+)\). Table~\ref{tab:q1c} provides a decision and an explicit calculation or indistinguishable counterexample for every task--operator combination. In particular, mean retains proportions but loses scale, while elementwise maximum retains only which categories occur.
+\input{tables/q1c.tex}
+
+\section{Question 2: Which Way Is the Slowdown Moving?}
+The ground-truth ring dynamics are \(x_i(t+1)=x_{i+1}(t)\), with indices 40, traffic advances toward larger indices, while the slowdown shifts toward smaller indices.
+
+\subsection{Q2(a): Symmetry-constrained fitting and rollout}
+For a single impulse \(x_{20}(t)=1\), only predictions at sensors 19, 20 and 21 can be nonzero. The symmetric layer \(\hat x_i(t+1)=a x_i(t)+b(x_{i-1}(t)+x_{i+1}(t))\) predicts \((b,a,b)\) at these three locations, while the true next snapshot is \((1,0,0)\). Hence
+\begin{equation}
+ L(a,b)=(b-1)^2+a^2+b^2,\quad \partial_aL=2a,\quad \partial_bL=4b-2,
+\end{equation}
+so \({a^*=0,\ b^*=\tfrac12,\ L_{\min}=\tfrac12}\). The least-squares solution splits the impulse equally between directions. This limitation persists when its fitted coefficients are reused everywhere on a wider bump.
+
+Starting with \(x_i(0)=\exp[-(i-20)^2/8]\), the exact process shifts the bump left by one position per time step, while \(\hat x_i(t+1)=\tfrac12(\hat x_{i-1}(t)+\hat x_{i+1}(t))\) diffuses it in both directions. At \(t=20\) the true peak remains 1.000 (now wrapped to sensor 0); the symmetric predictor's peak has fallen to 0.405, centred near 20. Both conserve total mass \(\approx5.013\), but only the correct dynamics preserve the bump's shape.
+\figpair{q2a_heatmaps.pdf}{Twenty-step true versus symmetric propagation (identical colour scale).}{q2a_profiles_t20.pdf}{\(t=20\): translated peak versus broadened, attenuated peak.}{A symmetric neighbour rule cannot encode the direction in which the isolated slowdown propagates.}{fig:q2a}
+\newpage
+\subsection{Q2(b): Direction-aware spatial weights}
+Set \(a=0\), \(w_-=0\) and \(w_+=1\) in
+\[
+ \hat x_i(t+1)=a x_i(t)+w_-x_{i-1}(t)+w_+x_{i+1}(t).
+\]
+Then \(\hat x_i(t+1)=x_{i+1}(t)\) for every possible snapshot, and the recorded substitution check has maximum error 0. A cross-correlation-style 1D convolution kernel, in the order multiplying \([x_{i-1},x_i,x_{i+1}]\), is \({[0,0,1]}\). Circular padding implements the ring, connecting sensor 39 back to 0. Direction labels solve the ambiguity because the two neighbours no longer have to receive equal coefficients.
+\figone[0.74\linewidth]{q2b_heatmaps.pdf}{An asymmetric one-step kernel predicts backward motion exactly on the circular sensor network.}{fig:q2b}
+
+\subsection{Q2(c): History as an implicit direction cue}
+The symmetric spatial weights can also be made exact by adding a previous reading:
+\begin{equation}
+ \hat x_i(t+1)=a x_i(t)+b[x_{i-1}(t)+x_{i+1}(t)]+c x_i(t-1).
+\end{equation}
+For backward motion, the previous state obeys \(x_i(t-1)=x_{i-1}(t)\). Thus \({a=0,\ b=1,\ c=-1}\) gives
+\[
+\hat x_i(t+1)=x_{i-1}(t)+x_{i+1}(t)-x_{i-1}(t)=x_{i+1}(t).
+\]
+Crucially, the same coefficients work for forward motion. There the consistent history satisfies \(x_i(t-1)=x_{i+1}(t)\), and substitution produces \(x_{i-1}(t)\), the correct forward target. The history term cancels the neighbour from which the current reading originated, leaving the other one. The reported maximum absolute errors in both directions are \(4.44\times10^{-16}\) (floating-point precision). This does not contradict the single-snapshot symmetry result and the two-frame input includes temporal displacement information.
+\figone[0.89\linewidth]{q2c_heatmaps.pdf}{Historical cancellation produces exact propagation for both consistent backward- and forward-moving trajectories.}{fig:q2c}
+
+\section{Question 3: Dataset Preparation and Graph Construction}
+\subsection{Q3(a): Data extraction, sampling and missingness}
+The saved pipeline selects all 716 sensors in LargeST's San Diego region for 2020 and 2021, giving \(T=70{,}176\) fifteen-minute slots and a traffic tensor \(X\in\mathbb{R}^{70{,}176\times716\times1}\). A reported choice is to sum three consecutive five-minute interval counts,
+\begin{equation}
+ x^{(15)}_{t,i}=\sum_{k=0}^{2}x^{(5)}_{3t+k,i},
+\end{equation}
+so the operational target is the number of vehicles per 15-minute interval, not the average rate. This interpretation treats the underlying five-minute flow readings as interval counts. The observed missing fraction after resampling is 5.059\%. The 2020 and 2021 five-minute missing fractions are 4.101\% and 6.034\%, respectively. Forty-three sensors have more than 50\% missing fifteen-minute observations, including 19 sensors with no observed readings in the examined period. Those fully missing series need a separately defined input fallback and contribute no observed target values to the masked loss; this is an important source of imputation uncertainty.
+
+The recorded handling is causal forward fill for missing inputs, a training-period sensor mean for leading gaps, and explicit masking of unavailable targets in training loss and evaluation. Training-only statistics avoid normalisation leakage. Figure~\ref{fig:q3a} shows missingness and a representative week (February 3--9, 2020) at sensors 1112996, 1108633 and 1125575.
+\figpair{q3a_missing_values.pdf}{Missing values across sensors and time.}{q3a_three_sensors_one_week.pdf}{One week of 15-minute flow at three selected SD sensors.}{Missingness is not negligible, but the daily oscillation remains visible in the plotted series.}{fig:q3a}
+
+\subsection{Q3(b): Road-distance graph properties}
+The corresponding submatrix \(A_{\mathrm{SD}}\in\mathbb{R}^{716\times716}\) is aligned to the traffic tensor's sensor ordering. It contains 18,035 nonzero entries, of which 716 are on the diagonal and \({17{,}319}\) are off-diagonal directed entries. It is not symmetric, either in values or in its nonzero pattern. The 3,711 directed entries lack the reverse entry. The reported mean out-degree is 24.19, median 20, maximum 70, with 8 zero-out-degree sensors. Thus the directed row-normalisation used later is more appropriate than directly assuming a symmetric normalisation. A nonzero \(A_{ij}\) denotes a provided, weighted road-distance relationship from sensor \(i\) to sensor \(j\), within the distance threshold; the supplied graph uses Gaussian-decaying weights of the form \(\exp(-d_{ij}^2/\sigma^2)\), with larger values representing shorter road-network distances. It does not necessarily denote a direct road segment between the two detector sites.
+\figpair{q3b_adjacency_heatmap.pdf}{Road-distance adjacency matrix (716 by 716).}{q3b_degree_distribution.pdf}{In-degree and out-degree frequencies, excluding self-links.}{The graph is sparse, heterogeneous in degree and directionally asymmetric.}{fig:q3b}
+
+\subsection{Q3(c): One-hop versus two-hop neighbourhoods}
+For sensor 1126411 (index 33), the saved graph query identifies 20 one-hop neighbours and 53 additional two-hop-only neighbours. One-hop examples are 1114805, 1114035, 1108547, 1118707 and 1126426. Two-hop-only examples are 1117748, 1113976, 1117741, 1108603 and 1117835.  A one-hop layer gathers immediate road-related sensor representations. A second graph layer can pass information along two-edge paths, potentially revealing upstream propagation and coordinated congestion not visible at the target detector alone. Neighbouring sensors may help because congestion and traffic volume changes propagate across nearby or connected corridors. The saved summary reports positive 2020 flow correlations for this example: 0.898 for its one-hop group, 0.908 for the two-hop-only group and 0.877 for the remaining sensors. These descriptive correlations do not prove causal influence. Larger depth also expands the average reachable set (roughly 25 after one hop to 469 after ten, including self-connections), increasing the risk of oversmoothing, mixing unrelated traffic regimes and computational burden. Deeper is therefore not automatically better.
+\figpair{q3c_neighbourhood_zoom.pdf}{Selected sensor and its one-/two-hop neighbourhood.}{q3c_receptive_field_growth.pdf}{Mean reachable nodes as graph depth increases.}{A wider receptive field enables more distant spatial context, but may mix dissimilar traffic patterns.}{fig:q3c}
+\newpage
+\section{Question 4: Spatio-Temporal Traffic Forecasting}
+\subsection{Q4(a): Chronological forecasting windows}
+Each input is \(X_t=[x_{t-7},\dots,x_t]\in\mathbb R^{8\times716\times1}\) and each target is \(Y_t=[x_{t+1},\dots,x_{t+4}]\in\mathbb R^{4\times716\times1}\). The dataset is partitioned before window construction: all of 2020 for training (35,125 valid windows), January--March 2021 for validation (8,629), and April--December 2021 for testing (26,389). The counts agree with \(T_{\mathrm{split}}-8-4+1\), demonstrating that windows do not cross boundaries. Training-period mean and standard deviation in the saved summary are 607.386 and 483.770, respectively; \(z=(x-\mu_{\mathrm{train}})/\sigma_{\mathrm{train}}\) uses only training-period information. Reported errors are converted back to the original flow units.
+\figone[0.59\linewidth]{q4a_splits.pdf}{Chronological train, validation and test periods. All forecast windows remain within their own period.}{fig:q4split}
+
+\subsection{Q4(b): Model and training configuration}
+The output specifies a shared temporal encoder with two temporal Conv1d blocks: \(1\rightarrow32\) channels with kernel size 3, then \(32\rightarrow32\) with kernel size 3 and dilation 2, each followed by ReLU. A linear projection of the eight time steps yields \(Z\in\mathbb R^{B\times716\times32}\). The graph model applies
+\begin{equation}
+ H=\mathrm{ReLU}(\Ahat ZW_g),\qquad W_g\in\mathbb R^{32\times32},
+ \qquad\hat Y=f_{\mathrm{head}}(H)\in\mathbb R^{B\times716\times4},
+\end{equation}
+where the head is Linear(32,32)--ReLU--Linear(32,4). The forecasting objective is target-masked MAE, optimised with Adam (learning rate \(10^{-3}\), batch 64, maximum 30 epochs, patience 6, gradient clip 5, seed 42). For the directed graph the saved implementation record specifies \(\Ahat=D^{-1}(A+I)\), a row-stochastic neighbourhood aggregation where degrees are the row sums. The Q4 model has 13,668 trainable parameters. 
+
+\subsection{Q4(c): Temporal-only baseline and comparison}
+The baseline removes graph convolution but keeps the temporal encoder and head (12,644 parameters). Table~\ref{tab:q4} reports validation and test metrics across the same horizons and evaluation period. \input{tables/q4.tex} The temporal-only baseline outperforms the physical-road graph by 75.680 MAE and 116.878 RMSE on the test set. Expressed relative to the temporal-only MAE, the fixed model's error is \(117.2\%\) higher. This is the \emph{opposite} of an empirical spatial benefit in this experiment. Potential explanations include directed-normalisation semantics, inconsistent graph relationships, missingness, oversmoothing or different optimisation sensitivity.
+\figone[0.93\linewidth]{q4c_temporal_vs_graph.pdf}{Temporal-only versus fixed-graph errors by horizon and recorded validation-learning curves.}{fig:q4comp}
+
+\section{Question 5: Fixed, Adaptive and Hybrid Graphs}
+\subsection{Q5(a): Fixed road-distance adjacency}
+The fixed variant uses the provided directed road network with self-connections and row normalisation \(A_f=D^{-1}(A+I)\). The matrix is held constant throughout training. Its 30-epoch run took 516.3\,s (8.60\,min; 17.21\,s/epoch). Test MAE and RMSE are 140.232 and 218.190.
+
+\subsection{Q5(b): Learnable adjacency}
+The adaptive graph uses two separate trainable node embeddings \(E_1,E_2\in\mathbb R^{716\times10}\), with
+\begin{equation}
+ A_a=\operatorname{softmax}_{\mathrm{row}}\left(\operatorname{ReLU}(E_1E_2^\top)\right).
+\end{equation}
+All 716 columns remain eligible neighbours (topk=0), so no discontinuous top-\(k\) mask interrupts gradients in the trained graph. The embeddings receive gradients through the dense softmax and graph forecasting loss. This model has 27,988 parameters; training took 530.7\,s (8.85\,min). Test MAE/RMSE are 82.169/129.802. The recorded average effective neighbourhood size is 14.47, with an average strongest-edge row weight of 0.311, indicating concentrated weights despite dense connectivity.
+
+\subsection{Q5(c): Hybrid graph and comparison}
+The hybrid combines consistently row-normalised matrices as
+\begin{equation}
+ A_h=\alpha A_f+(1-\alpha)A_a,\qquad \alpha=\sigma(\theta),\ \alpha_{\mathrm{init}}=0.5.
+\end{equation}
+Its learned best-checkpoint coefficient is \({\alpha=0.2580}\): 25.8\% fixed and 74.2\% adaptive on this scale. The common temporal encoder, head, split, training settings and seed are retained. The 27,989-parameter model runs for 30 epochs and takes 532.3\,s (8.87\,min). Table~\ref{tab:q5} compares every graph setting.
+\input{tables/q5.tex}
+Hybrid improves test MAE relative to adaptive by 2.859 (3.48\%) and relative to fixed by 60.922 (43.44\%). Yet its MAE still exceeds the temporal-only result by 14.758 (22.86\%). Moreover, adaptive and hybrid have about twice the parameter count of fixed. Figure~\ref{fig:q5} contrasts the adjacency matrices and validation curves. Most checkpoints selected the final or penultimate epoch, so longer training remains a potentially relevant control experiment.
+\figpair{q5_adjacency_matrices.pdf}{Physical, adaptive and hybrid adjacency views.}{q5_learning_curves.pdf}{Validation MAE and hybrid's road-graph mixing weight.}{Learned adjacency changes the effective spatial mixing; the hybrid converges toward smaller road-graph weight.}{fig:q5}
+
+\section{Question 6: Experimental Analysis and Interpretation}
+\subsection{Q6(a): Forecasting comparison}
+Table~\ref{tab:q6main} is the required final comparison, measured on the same April--December 2021 test period in vehicles per 15-minute interval. Training time is measured for training batches and excludes dataset acquisition, preprocessing and report creation.
+\input{tables/q6main.tex}
+The temporal-only baseline ranks first on both metrics. Within the spatial models, hybrid ranks first, adaptive second, fixed third. Errors increase with horizon for all four models (Table~\ref{tab:q6h}), confirming the cost of longer-range forecasting. The fixed graph remains the weakest at every horizon. Consequently, a lower error for hybrid than fixed demonstrates a better learned spatial model among the tested spatial models, not a general advantage of spatial modelling over temporal-only forecasting.
+\input{tables/q6horizons.tex}
+\figpair{q6a_pred_vs_actual_15min.pdf}{Test-week traces at the 15-minute horizon.}{q6a_pred_vs_actual_60min.pdf}{The same sensors at the 60-minute horizon.}{Predicted versus observed flow for three example sensors, plotted on the saved test interval.}{fig:q6pred}
+\figpair{q6a_metric_bars.pdf}{Overall test MAE and RMSE, all models.}{q6a_best_model_one_day_all_horizons.pdf}{Best-performing \emph{graph} model across all four horizons on one example day.}{Complementary aggregate and temporal views of the forecasting results.}{fig:q6metric}
+
+\subsection{Q6(b): What did the learned graph represent?}
+For each sensor, the saved graph analysis retains its ten strongest \emph{off-diagonal} learned connections (7,160 directed candidate edges in total). Only 6.56\% of those top-ten neighbours occur in the original road graph. A randomly chosen directed off-diagonal pair would be connected about 3.38\% of the time. Ranking the 7,160 strongest learned edges globally gives a similar 6.62\% overlap. Just 10.37\% of the learned off-diagonal edge mass falls on original road-graph neighbours, and 6,690 of the top-ten links (93.4\%) are absent from the supplied road graph. Thus the adaptive graph does construct non-physical-graph relationships, though overlap alone does not show that those relationships are predictive, stable or causal.
+
+The top-ten learned links have median straight-line sensor separation 20.35\,km, versus 2.37\,km for road-graph links and 23.01\,km for random sensor pairs. Learned links are therefore much less local than physical links and only moderately closer than random pairs. The network also has concentrated destinations: the five most frequently weighted target sensors receive 5.94\% of learned off-diagonal mass, versus 0.70\% under an exactly uniform distribution over all 716 targets. Figures~\ref{fig:q6graph} and \ref{fig:q6maps} support these observations.
+\figpair{q6b_distance_distribution.pdf}{Separation of physical, top-ten learned and random pairs.}{q6b_road_vs_learned_sorted.pdf}{Road and learned adjacency after sorting by the physical graph's connectivity.}{Low overlap and long-distance learned links indicate a functional graph that differs from the road-distance graph.}{fig:q6graph}
+\figone[0.5\linewidth]{q6b_learned_edges_map.pdf}{Geographical display of a subset of high-weight learned connections (red), over the sensor locations and geographic region.}{fig:q6maps}
+
+\newpage
+\subsection{Q6(c): Critical interpretation}
+\textbf{Does lower error identify actual roads?} No. The learnt graph optimises a forecasting loss, not a road-connectivity reconstruction loss. Similar commuting cycles, latent common drivers and globally correlated time patterns can generate useful edges between distant or non-adjacent sensors. Its limited 6.56\% overlap with the physical graph is consistent with this distinction, but is not proof of causal functional links.
+
+\textbf{Why might a hybrid help?} The physical matrix imposes a spatial inductive bias. The adaptive component can represent recurrent long-distance associations or compensate for missing physical edges. Their convex combination regularises the flexibility of a purely learned graph while maintaining physical context. Here \(\alpha=0.258\) and MAE improves modestly against adaptive, although it still loses to temporal-only.
+
+\textbf{What does a static graph miss?} Morning and evening peaks, weekday and weekend schedules, incidents, closures and seasonal conditions change which sensors matter. A graph that is constant in time cannot explicitly alter connectivity with traffic state. Follow-up models could condition \(A_t\) on the recent traffic window, use direction-aware edge attributes, introduce gated residual spatial mixing, or compare dynamic versus static adjacency with matched capacity.
+
+\textbf{Additional limitations.} Results come from one seed, a 30-epoch budget and unequal spatial-model parameter counts. Forty-three sensors have more than half their target observations missing (19 are entirely unobserved in the examined series). Physical-versus-learned distance comparisons do not account for travel times or direction of roads. None of these limitations invalidates the reported metrics. They restrict causal conclusions about the architecture.
+
+\section{Question 7: Reproducibility and Reporting}
+The execution used an NVIDIA Tesla T4 (15.6\,GB reported GPU memory), Intel Xeon CPU at 2.00\,GHz (two logical cores), 13.6\,GB RAM, Linux, Python 3.13.16, PyTorch 2.14.1+cu130, CUDA 13.0, NumPy 2.4.6, pandas 2.2.3 and h5py 3.14.0. Reported training times are listed in Table~\ref{tab:q6main}. The saved run configuration is given in Table~\ref{tab:settings}.
+\input{tables/settings.tex}
+
+The github repo included in the report package preserves the executed notebook and its figures. It also provides the original figure PDFs and PNGs, plus CSV, JSON and Markdown result summaries, to make every numerical table auditable. The scripts used for the work including \texttt{q1\_aggregation.py}, \texttt{q2\_direction.py}, \texttt{q3\_dataset.py}, \texttt{q4\_stgnn.py}, \texttt{q5\_adjacency.py}, \texttt{q6\_analysis.py}, \texttt{q7\_report.py} and supporting modules are provided in the github repo. The adjacency comparison is provided in the question 3 and 5.   
+
+\textbf{Reproduction order (after obtaining the original experiment code):} install its \texttt{requirements.txt}, configure the \texttt{PA3\_DATA\_DIR}, \texttt{PA3\_OUT\_DIR} and \texttt{PA3\_RAW\_DIR} paths in a Google Colab GPU session, and run the notebook cells in order (Q1 to Q7). The first dataset run extracts the 2020--2021 SD data and caches a processed tensor. The report itself compiles offline using standard \LaTeX\ packages and the downloaded figures.
+\section{Conclusion}
+The  example separate three kinds of information, affine summation retains only degree and trend sum. An appropriate nonlinear scalar message can encode every count exactly. And a symmetric spatial forecast cannot determine the direction of an isolated impulse until directed edges or a consistent history are supplied. On LargeST-SD, the graph construction and chronological evaluation are documented, with substantial data missingness and a directed road-distance matrix. Adaptive and hybrid message passing substantially reduce the fixed-graph model's error but neither surpasses the temporal-only control. 
+\begin{thebibliography}{9}
+
+\bibitem{largest} LargeST authors, \emph{LargeST: Large-Scale Traffic Forecasting Dataset}, official dataset repository, \url{https://github.com/liuxu77/LargeST}. Dataset access: \url{https://www.kaggle.com/datasets/liuxu77/largest}.
+\bibitem{gcn} T.~N. Kipf and M.~Welling, ``Semi-Supervised Classification with Graph Convolutional Networks,'' \emph{International Conference on Learning Representations}, 2017.
+\bibitem{wave} Z.~Wu, S.~Pan, G.~Long, J.~Jiang and C.~Zhang, ``Graph WaveNet for Deep Spatial-Temporal Graph Modeling,'' \emph{IJCAI}, 2019.
+\end{thebibliography}
+
+\section*{AI Policy Compliance}
+Please note that claude and gemini was used for help in coding, formatting i.e. making tables and converting solutions into latex format and understanding of the underlying concepts
+
+\begin{itemize}
+	\item \textbf{Prompt} can you explain why the encoding uniquely recovers the counts of slowing, steady, and speeding-up sensors, and why your exhaustive test produced 164 combinations? 
+	
+	 \textbf{AI Ouput}  Explained how preventing carries and allowing us to uniquely recover all three counts using division and remainders and exhaustive test produced 164 combinations because there are 164 possible nonempty triples of slowing, steady, and speeding-up sensor counts with 1–8 neighbours. 
+	
+	\item \textbf{Prompt} what information each aggregation method preserves and loses
+	
+	 \textbf{AI Ouput} Explained that sum aggregation --  preserves the exact count of each sensor and neighbourhood size mean aggregation-- preserves the proportion of each sensor type but loses the total number of neighbours and exact counts and that max aggregation- preserves whether each sensor type is present or absent but loses their counts, proportions, and neighbourhood size
+	
+	\item \textbf{Prompt} what is difference between one-hop and two-hop neighbours, and why you used directed row normalization rather than standard symmetric GCN normalization? 
+	
+	 \textbf{AI Ouput} Explained that one-hop neighbours are directly connected sensors, while two-hop neighbours are reachable through up to two edges and that the directed row normalization preserves traffic direction in an asymmetric graph, unlike symmetric GCN normalization, which assumes an undirected graph
+
+\end{itemize}
+
+\end{document}
