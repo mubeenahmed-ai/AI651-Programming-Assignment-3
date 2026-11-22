@@ -1,0 +1,73 @@
+{
+  "table": [
+    {
+      "Model": "Temporal-only",
+      "Adjacency": "None",
+      "MAE": 64.552,
+      "RMSE": 101.312,
+      "Training time": "8.2 min (30 ep, 16.3 s/ep)",
+      "Val MAE": 56.249,
+      "Val RMSE": 90.456,
+      "MAE@15min": 44.897,
+      "MAE@30min": 58.562,
+      "MAE@45min": 70.939,
+      "MAE@60min": 83.812
+    },
+    {
+      "Model": "STGNN",
+      "Adjacency": "Fixed",
+      "MAE": 140.232,
+      "RMSE": 218.19,
+      "Training time": "8.6 min (30 ep, 17.2 s/ep)",
+      "Val MAE": 124.317,
+      "Val RMSE": 200.128,
+      "MAE@15min": 132.891,
+      "MAE@30min": 137.358,
+      "MAE@45min": 142.355,
+      "MAE@60min": 148.325
+    },
+    {
+      "Model": "STGNN",
+      "Adjacency": "Adaptive",
+      "MAE": 82.169,
+      "RMSE": 129.802,
+      "Training time": "8.8 min (30 ep, 17.7 s/ep)",
+      "Val MAE": 65.726,
+      "Val RMSE": 112.267,
+      "MAE@15min": 75.858,
+      "MAE@30min": 79.903,
+      "MAE@45min": 83.783,
+      "MAE@60min": 89.132
+    },
+    {
+      "Model": "STGNN",
+      "Adjacency": "Hybrid",
+      "MAE": 79.31,
+      "RMSE": 125.542,
+      "Training time": "8.9 min (30 ep, 17.7 s/ep)",
+      "Val MAE": 64.279,
+      "Val RMSE": 110.505,
+      "MAE@15min": 72.717,
+      "MAE@30min": 76.525,
+      "MAE@45min": 81.053,
+      "MAE@60min": 86.947
+    }
+  ],
+  "graph": {
+    "k": 10,
+    "topk_in_phys": 0.06564245810055866,
+    "density": 0.033830136344102826,
+    "global_in_phys": 0.06620111731843575,
+    "mass_on_phys": 0.10373349033410038,
+    "median_km_learned": 20.352959167819225,
+    "median_km_phys": 2.3710611863843543,
+    "median_km_random": 23.006460146516158,
+    "frac_learned_within_5km": 0.10558659217877095,
+    "n_learned_only": 6690,
+    "corr_learned_only": NaN,
+    "corr_learned_phys": NaN,
+    "corr_random": NaN,
+    "corr_road": NaN,
+    "learned_in_weight_top5_share": 0.059386104266090936
+  }
+}

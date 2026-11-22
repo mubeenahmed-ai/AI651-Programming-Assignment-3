@@ -1,0 +1,10 @@
+Task,Method,Possible,Reason
+(i) Count steady neighbours,Sum,Yes,rho = a2 (2nd coordinate = #steady) [verified on all neighbourhoods]
+(i) Count steady neighbours,Mean,No,"N1=[0] and N2=[0, 0] both aggregate to (0, 1, 0) but answers are 1 vs 2"
+(i) Count steady neighbours,Max,No,"N1=[0] and N2=[0, 0] both aggregate to (0, 1, 0) but answers are 1 vs 2"
+(ii) More than half slowing,Sum,Yes,n = a1+a2+a3 (sum of all coords); test a1 > n/2 [verified on all neighbourhoods]
+(ii) More than half slowing,Mean,Yes,a1 = fraction slowing; test a1 > 1/2 [verified on all neighbourhoods]
+(ii) More than half slowing,Max,No,"N1=[-1, -1, 0] and N2=[-1, 0] both aggregate to (1, 1, 0) but answers are True vs False"
+(iii) Any neighbour slowing,Sum,Yes,test a1 > 0 (#slowing >= 1) [verified on all neighbourhoods]
+(iii) Any neighbour slowing,Mean,Yes,test a1 > 0 (fraction slowing > 0) [verified on all neighbourhoods]
+(iii) Any neighbour slowing,Max,Yes,test a1 = 1 (some neighbour flagged slowing) [verified on all neighbourhoods]

@@ -1,0 +1,5 @@
+Model,Adjacency,MAE,RMSE,Training time,Val MAE,Val RMSE,MAE@15min,MAE@30min,MAE@45min,MAE@60min
+Temporal-only,None,64.552,101.312,"8.2 min (30 ep, 16.3 s/ep)",56.249,90.456,44.897,58.562,70.939,83.812
+STGNN,Fixed,140.232,218.19,"8.6 min (30 ep, 17.2 s/ep)",124.317,200.128,132.891,137.358,142.355,148.325
+STGNN,Adaptive,82.169,129.802,"8.8 min (30 ep, 17.7 s/ep)",65.726,112.267,75.858,79.903,83.783,89.132
+STGNN,Hybrid,79.31,125.542,"8.9 min (30 ep, 17.7 s/ep)",64.279,110.505,72.717,76.525,81.053,86.947

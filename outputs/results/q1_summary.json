@@ -1,0 +1,17 @@
+{
+  "part_b": {
+    "K": 8,
+    "base": 9,
+    "phi": {
+      "-1": 1,
+      "0": 9,
+      "1": 81
+    },
+    "n_triples": 164,
+    "all_distinct": true,
+    "decode_ok": true,
+    "multiset_ok": true,
+    "nonsteady_phi": "x^2",
+    "nonsteady_ok": true
+  }
+}

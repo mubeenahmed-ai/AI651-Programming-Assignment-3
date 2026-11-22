@@ -1,0 +1,39 @@
+{
+  "windows": {
+    "T": 70176,
+    "N": 716,
+    "mean": 607.386474609375,
+    "std": 483.76959228515625,
+    "aggregation": "sum",
+    "n_train_windows": 35125,
+    "train_first_input": "2020-01-01 00:00:00",
+    "train_last_target": "2020-12-31 23:45:00",
+    "n_val_windows": 8629,
+    "val_first_input": "2021-01-01 00:00:00",
+    "val_last_target": "2021-03-31 23:45:00",
+    "n_test_windows": 26389,
+    "test_first_input": "2021-04-01 00:00:00",
+    "test_last_target": "2021-12-31 23:45:00"
+  },
+  "comparison": [
+    {
+      "Model": "Temporal-only",
+      "Val MAE": 56.2491569519043,
+      "Val RMSE": 90.4560317993164,
+      "Test MAE": 64.55242919921875,
+      "Test RMSE": 101.31230926513672,
+      "Params": 12644,
+      "Train time (min)": 8.152815691630046
+    },
+    {
+      "Model": "STGNN (fixed graph)",
+      "Val MAE": 124.31734466552734,
+      "Val RMSE": 200.1283721923828,
+      "Test MAE": 140.23243713378906,
+      "Test RMSE": 218.1898193359375,
+      "Params": 13668,
+      "Train time (min)": 8.604455661773681
+    }
+  ],
+  "test_mae_gain_pct": -117.23804800747334
+}

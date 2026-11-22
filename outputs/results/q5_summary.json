@@ -1,0 +1,41 @@
+{
+  "comparison": [
+    {
+      "Adjacency": "Fixed",
+      "Val MAE": 124.31734466552734,
+      "Val RMSE": 200.1283721923828,
+      "Test MAE": 140.23243713378906,
+      "Test RMSE": 218.1898193359375,
+      "Params": 13668,
+      "Epochs": 30,
+      "Train time (min)": 8.604455661773681,
+      "s/epoch": 17.208911323547362
+    },
+    {
+      "Adjacency": "Adaptive",
+      "Val MAE": 65.72588348388672,
+      "Val RMSE": 112.26730346679688,
+      "Test MAE": 82.16898345947266,
+      "Test RMSE": 129.80226135253906,
+      "Params": 27988,
+      "Epochs": 30,
+      "Train time (min)": 8.845226935545604,
+      "s/epoch": 17.690453871091208
+    },
+    {
+      "Adjacency": "Hybrid",
+      "Val MAE": 64.2791519165039,
+      "Val RMSE": 110.50457000732422,
+      "Test MAE": 79.3104248046875,
+      "Test RMSE": 125.54230499267578,
+      "Params": 27989,
+      "Epochs": 30,
+      "Train time (min)": 8.870900098482768,
+      "s/epoch": 17.741800196965535
+    }
+  ],
+  "alpha": 0.25800931453704834,
+  "fixed_normalisation": "row",
+  "adaptive_eff_neighbours_mean": 14.468708992004395,
+  "adaptive_top1_mean": 0.31142929196357727
+}

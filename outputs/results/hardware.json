@@ -1,0 +1,18 @@
+{
+  "python": "3.13.16",
+  "platform": "Linux-6.6.159+-x86_64-with-glibc2.39",
+  "processor": "x86_64",
+  "cpu_cores_logical": 2,
+  "cpu_cores_physical": 1,
+  "ram_gb": 13.6,
+  "cpu_model": "Intel(R) Xeon(R) CPU @ 2.00GHz",
+  "torch": "2.14.1+cu130",
+  "cuda_available": true,
+  "gpu": "Tesla T4",
+  "gpu_mem_gb": 15.6,
+  "cuda": "13.0",
+  "numpy": "2.4.6",
+  "pandas": "2.2.3",
+  "matplotlib": "3.10.0",
+  "h5py": "3.14.0"
+}

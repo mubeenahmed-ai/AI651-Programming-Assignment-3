@@ -1,0 +1,3 @@
+Model,Val MAE,Val RMSE,Test MAE,Test RMSE,Params,Train time (min)
+Temporal-only,56.249,90.456,64.552,101.312,12644,8.153
+STGNN (fixed graph),124.317,200.128,140.232,218.19,13668,8.604

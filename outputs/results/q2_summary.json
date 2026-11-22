@@ -1,0 +1,66 @@
+{
+  "part_a": {
+    "a": 0.0,
+    "b": 0.4999999999999999,
+    "sse": 0.5,
+    "rollout_stats": [
+      {
+        "t": 0,
+        "true_centre": 20.0,
+        "pred_centre": 20.0,
+        "true_peak": 1.0,
+        "pred_peak": 1.0,
+        "true_mass": 5.013256549262001,
+        "pred_mass": 5.013256549262001
+      },
+      {
+        "t": 5,
+        "true_centre": 15.0,
+        "pred_centre": 20.0,
+        "true_peak": 1.0,
+        "pred_peak": 0.6557605185163187,
+        "true_mass": 5.0132565492620005,
+        "pred_mass": 5.013256549261995
+      },
+      {
+        "t": 10,
+        "true_centre": 10.0,
+        "pred_centre": 20.0,
+        "true_peak": 1.0,
+        "pred_peak": 0.5275682338382794,
+        "true_mass": 5.0132565492620005,
+        "pred_mass": 5.013256549261989
+      },
+      {
+        "t": 20,
+        "true_centre": 0.0,
+        "pred_centre": 20.0,
+        "true_peak": 1.0,
+        "pred_peak": 0.4046884632675118,
+        "true_mass": 5.0132565492620005,
+        "pred_mass": 5.013256549261978
+      }
+    ]
+  },
+  "part_b": {
+    "a": 0.0,
+    "w_minus": 0.0,
+    "w_plus": 1.0,
+    "max_err": 0.0,
+    "conv_kernel": [
+      0.0,
+      0.0,
+      1.0
+    ],
+    "conv_err": 0.0
+  },
+  "part_c": {
+    "a": 0.0,
+    "b": 1.0,
+    "c": -1.0,
+    "max_err": {
+      "backward": 4.440892098500626e-16,
+      "forward": 4.440892098500626e-16
+    }
+  }
+}
